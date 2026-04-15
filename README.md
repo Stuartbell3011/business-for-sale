@@ -1,41 +1,24 @@
-# Link-in-Bio Page Builder
+# BizAcquire
 
-A full-stack link-in-bio page builder where users can create a personalized page with links, headers, and dividers — similar to Linktree. Built with Next.js 15, React 19, and Neon Postgres.
-
-## Features
-
-- **Email/Password Authentication** — Sign up, log in, and session management via Neon Auth
-- **Profile Editor** — Edit display name, bio, and avatar URL with a live phone-frame preview
-- **Link Management** — Add links, section headers, and dividers
-- **Drag-and-Drop Reorder** — Rearrange items with dnd-kit drag handles
-- **Live Preview** — Real-time preview panel that mirrors the public page layout
-- **Responsive Layout** — Side-by-side editor/preview on desktop, tab toggle on mobile
-- **Save with Feedback** — Explicit save button with toast notifications
+AI-powered platform to discover, evaluate, and acquire small businesses — with location intelligence.
 
 ## Tech Stack
 
-- **Framework:** Next.js 15 (App Router, `src/` directory)
-- **UI:** React 19, Tailwind CSS v4, shadcn/ui, Lucide icons
-- **Database:** Neon Postgres + Drizzle ORM
-- **Auth:** Neon Auth (`@neondatabase/auth`)
-- **Drag-and-Drop:** dnd-kit
+- **Framework:** Next.js 15 (App Router)
+- **UI:** React 19, Tailwind CSS v4, shadcn/ui
+- **Database:** Supabase (Postgres + Auth + RLS)
+- **Map:** Mapbox GL JS via react-map-gl
+- **AI:** OpenAI API
 - **Validation:** Zod
-- **Testing:** Vitest (unit), agent-browser (E2E)
 - **Linting/Formatting:** Biome
+- **Testing:** Vitest
 
 ## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- A [Neon](https://neon.tech) project with Auth enabled
-
-### Setup
 
 1. **Install dependencies:**
 
    ```bash
-   npm install --legacy-peer-deps
+   npm install
    ```
 
 2. **Configure environment variables:**
@@ -44,12 +27,12 @@ A full-stack link-in-bio page builder where users can create a personalized page
    cp .env.example .env.local
    ```
 
-   Fill in your Neon database URL, auth base URL, and cookie secret.
+   Fill in your Supabase, Mapbox, and OpenAI keys.
 
-3. **Push the database schema:**
+3. **Run database migrations:**
 
    ```bash
-   npm run db:push
+   supabase db push
    ```
 
 4. **Start the dev server:**
@@ -58,29 +41,37 @@ A full-stack link-in-bio page builder where users can create a personalized page
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-> **Note:** Do not use `--turbopack` — middleware does not execute with Turbopack in Next.js 15.
-
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── (auth)/          # Signup + Login pages
-│   ├── (dashboard)/     # Editor page
-│   └── api/             # Profile, links, links/reorder, slug/check routes
+│   ├── (auth)/              # Login + Signup pages
+│   ├── (marketplace)/       # Map view + listing detail
+│   ├── (seller)/            # AI seller onboarding
+│   └── api/
+│       ├── listings/        # CRUD for business listings
+│       ├── ai/onboard/      # AI onboarding endpoint
+│       └── location/        # Location intelligence
 ├── components/
-│   ├── auth/            # Signup/login forms, slug input
-│   ├── editor/          # Link list, link item, add button, profile form, toolbar
-│   ├── preview/         # Phone-frame preview panel
-│   ├── themes/          # Minimal theme (reusable for public pages)
-│   └── ui/              # shadcn/ui primitives
-├── db/                  # Drizzle schema + connection
-├── hooks/               # useProfile data fetching hook
-├── lib/                 # Validations, rate limiter, utils
-├── middleware.ts        # Route protection for /editor, /analytics, /settings
-└── types/               # Shared TypeScript types
+│   ├── ai/                  # Onboarding chat UI
+│   ├── listings/            # Listing card + grid
+│   ├── map/                 # Mapbox map, markers, filters
+│   └── ui/                  # shadcn/ui primitives
+├── hooks/
+│   ├── use-listings.ts      # Listings + filter state
+│   └── use-map.ts           # Map view state
+├── lib/
+│   ├── ai/                  # OpenAI client
+│   ├── map/                 # Mapbox config
+│   ├── supabase/            # Browser + server clients
+│   └── utils.ts
+├── middleware.ts             # Supabase auth + route protection
+└── types/
+    └── index.ts             # Business, LocationMetrics, filters
+supabase/
+└── migrations/
+    └── 0001_initial_schema.sql
 ```
 
 ## Scripts
@@ -94,7 +85,4 @@ src/
 | `npm run format` | Format with Biome |
 | `npm run test` | Run unit tests (watch mode) |
 | `npm run test:run` | Run unit tests once |
-| `npm run test:e2e` | Run E2E tests |
-| `npm run db:push` | Push schema to database |
-| `npm run db:generate` | Generate Drizzle migrations |
-| `npm run db:studio` | Open Drizzle Studio |
+| `npm run db:types` | Generate Supabase TypeScript types |
