@@ -1,7 +1,8 @@
-export default function ListingDetailPage({
-  params,
+export default async function ListingDetailPage({
+	params,
 }: {
-  params: { id: string };
+	params: Promise<{ id: string }>;
 }) {
-  return <div>Listing detail — {params.id}</div>;
+	const { id } = await params;
+	return <div>Listing detail — {id}</div>;
 }

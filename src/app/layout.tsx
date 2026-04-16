@@ -4,27 +4,27 @@ import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+	variable: "--font-geist-sans",
+	subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "BizAcquire — Find & Buy Small Businesses",
-  description:
-    "AI-powered marketplace to discover, evaluate, and acquire small businesses with location intelligence.",
+	title: "BizAcquire — Businesses for Sale in London",
+	description:
+		"Discover small businesses for sale across London. Browse by area on an interactive map, connect with sellers, and acquire your next venture.",
 };
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} antialiased`}>
-        {children}
-        <Toaster />
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en" suppressHydrationWarning>
+			<body className={`${geistSans.variable} antialiased`}>
+				{children}
+				<Toaster />
+			</body>
+		</html>
+	);
 }
