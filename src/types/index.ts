@@ -1,41 +1,37 @@
-import type { InferSelectModel } from "drizzle-orm";
-import type { clickEvents, linkItems, profiles } from "@/lib/db/schema";
+export type LocationPrecision = "city" | "approximate" | "exact";
 
-export type Profile = InferSelectModel<typeof profiles>;
-export type LinkItem = InferSelectModel<typeof linkItems>;
-export type ClickEvent = InferSelectModel<typeof clickEvents>;
+export type Business = {
+  id: string;
+  title: string;
+  industry: string;
+  country: string;
+  city: string;
+  latitude: number;
+  longitude: number;
+  location_precision: LocationPrecision;
+  revenue: number;
+  profit: number;
+  employees: number;
+  asking_price: number;
+  verified: boolean;
+  created_at: string;
+  updated_at: string;
+};
 
-export type LinkItemType = "link" | "header" | "divider";
+export type LocationMetrics = {
+  business_id: string;
+  competition_score: number;
+  footfall_score: number;
+  demographic_score: number;
+  opportunity_score: number;
+};
 
-export type Theme = "minimal" | "dark" | "colorful" | "professional";
-
-// API response types
-export interface ProfileWithLinks {
-	profile: Profile;
-	links: LinkItem[];
-}
-
-// Editor state (client-side)
-export interface EditorState {
-	displayName: string;
-	bio: string;
-	avatarUrl: string;
-	theme: Theme;
-	links: LinkItem[];
-	isDirty: boolean;
-	isSaving: boolean;
-}
-
-// Theme component props
-export interface ThemeProps {
-	displayName: string;
-	bio: string;
-	avatarUrl: string;
-	links: Array<{
-		id: string;
-		type: "link" | "header" | "divider";
-		title: string;
-		url: string;
-	}>;
-	isPreview?: boolean;
-}
+export type ListingFilters = {
+  industry?: string;
+  min_price?: number;
+  max_price?: number;
+  min_revenue?: number;
+  max_revenue?: number;
+  country?: string;
+  city?: string;
+};

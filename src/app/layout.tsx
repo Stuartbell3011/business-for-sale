@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { AuthProvider } from "@/components/auth/auth-provider";
+import { Geist } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -9,14 +8,10 @@ const geistSans = Geist({
 	subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-	variable: "--font-geist-mono",
-	subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-	title: "Link in Bio Page Builder",
-	description: "Create your personal link-in-bio page",
+	title: "BizAcquire — Businesses for Sale in London",
+	description:
+		"Discover small businesses for sale across London. Browse by area on an interactive map, connect with sellers, and acquire your next venture.",
 };
 
 export default function RootLayout({
@@ -26,8 +21,8 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-				<AuthProvider>{children}</AuthProvider>
+			<body className={`${geistSans.variable} antialiased`}>
+				{children}
 				<Toaster />
 			</body>
 		</html>

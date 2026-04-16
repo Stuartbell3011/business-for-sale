@@ -1,22 +1,50 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { type NextRequest, NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
-	// Check for Neon Auth session cookie
-	// The cookie name varies: __Secure-neon-auth.session_token on HTTPS,
-	// neon-auth.session_token on HTTP localhost
-	const allCookies = request.cookies.getAll();
-	const sessionCookie = allCookies.find(c => c.name.includes("neon-auth.session_token"));
+export async function middleware(request: NextRequest) {
+	const protectedRoutes = ["/seller"];
+	const isProtected = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
 
-	if (!sessionCookie?.value) {
-		const loginUrl = new URL("/login", request.url);
-		loginUrl.searchParams.set("callbackUrl", request.nextUrl.pathname);
-		return NextResponse.redirect(loginUrl);
+	// Skip Supabase auth check entirely for public routes
+	if (!isProtected) {
+		return NextResponse.next();
 	}
 
-	return NextResponse.next();
+	// Only initialise Supabase for protected routes
+	let supabaseResponse = NextResponse.next({ request });
+
+	const supabase = createServerClient(
+		process.env.NEXT_PUBLIC_SUPABASE_URL!,
+		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+		{
+			cookies: {
+				getAll() {
+					return request.cookies.getAll();
+				},
+				setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+					for (const { name, value } of cookiesToSet) {
+						request.cookies.set(name, value);
+					}
+					supabaseResponse = NextResponse.next({ request });
+					for (const { name, value, options } of cookiesToSet) {
+						supabaseResponse.cookies.set(name, value, options);
+					}
+				},
+			},
+		},
+	);
+
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
+
+	if (!user) {
+		return NextResponse.redirect(new URL("/login", request.url));
+	}
+
+	return supabaseResponse;
 }
 
 export const config = {
-	matcher: ["/editor", "/editor/:path*", "/analytics", "/analytics/:path*", "/settings", "/settings/:path*"],
+	matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };
