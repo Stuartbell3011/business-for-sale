@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  return NextResponse.json({ insights: null }, { status: 501 });
+	return NextResponse.json({ insights: null }, { status: 501 });
 }
