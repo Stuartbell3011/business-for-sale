@@ -7,6 +7,6 @@ type Props = {
 	onChange: (filters: ListingFilters) => void;
 };
 
-export function MapFilters({ filters, onChange }: Props) {
+export function MapFilters(_props: Props) {
 	return <div>Filters placeholder</div>;
 }

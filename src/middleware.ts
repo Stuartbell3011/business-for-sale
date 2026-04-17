@@ -5,17 +5,15 @@ export async function middleware(request: NextRequest) {
 	const protectedRoutes = ["/seller"];
 	const isProtected = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
 
-	// Skip Supabase auth check entirely for public routes
 	if (!isProtected) {
 		return NextResponse.next();
 	}
 
-	// Only initialise Supabase for protected routes
 	let supabaseResponse = NextResponse.next({ request });
 
 	const supabase = createServerClient(
-		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+		process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
 		{
 			cookies: {
 				getAll() {
