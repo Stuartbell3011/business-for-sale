@@ -1,97 +1,107 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { List, MapIcon } from "lucide-react";
+import dynamic from "next/dynamic";
 import { ListingGrid } from "@/components/listings/listing-grid";
+import { MapFilters } from "@/components/map/map-filters";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useListings } from "@/hooks/use-listings";
+import { useMap } from "@/hooks/use-map";
 
-const industries = [
-	"All",
-	"Cafe",
-	"Restaurant",
-	"Gym",
-	"Salon",
-	"Retail",
-	"Bar",
-	"Services",
-	"Tech",
-];
+const MarketMap = dynamic(() => import("@/components/map/market-map").then((m) => m.MarketMap), {
+	ssr: false,
+	loading: () => (
+		<div className="flex h-full w-full items-center justify-center bg-muted text-sm text-muted-foreground">
+			Loading map...
+		</div>
+	),
+});
 
 export default function MarketplacePage() {
 	const { listings, filters, setFilters, loading, pagination, setPage } = useListings();
+	const { selectedBusiness, setSelectedBusiness, view, setView, viewState, setViewState } =
+		useMap();
 
 	return (
-		<div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-			<div className="mb-8">
-				<h1 className="text-3xl font-bold tracking-tight">Businesses for Sale</h1>
-				<p className="mt-1 text-muted-foreground">
-					{pagination.count} {pagination.count === 1 ? "listing" : "listings"} found
-				</p>
-			</div>
-
-			{/* Filters */}
-			<div className="mb-6 flex flex-wrap items-center gap-3">
-				<div className="relative w-full sm:w-64">
-					<Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-					<Input
-						placeholder="Search by city..."
-						className="pl-9"
-						value={filters.city ?? ""}
-						onChange={(e) => setFilters({ ...filters, city: e.target.value || undefined })}
-					/>
+		<div className="flex h-[calc(100vh-57px)] flex-col">
+			{/* Top bar */}
+			<div className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
+				<div>
+					<h1 className="text-lg font-bold">Businesses for Sale</h1>
+					<p className="text-xs text-muted-foreground">
+						{pagination.count} {pagination.count === 1 ? "listing" : "listings"}
+					</p>
 				</div>
-				<div className="flex flex-wrap gap-2">
-					{industries.map((industry) => (
-						<Button
-							key={industry}
-							variant={
-								(industry === "All" && !filters.industry) || filters.industry === industry
-									? "default"
-									: "outline"
-							}
-							size="sm"
-							className="rounded-full"
-							onClick={() =>
-								setFilters({
-									...filters,
-									industry: industry === "All" ? undefined : industry,
-								})
-							}
-						>
-							{industry}
-						</Button>
-					))}
+				<div className="flex gap-1">
+					<Button
+						variant={view === "map" ? "default" : "outline"}
+						size="sm"
+						onClick={() => setView("map")}
+					>
+						<MapIcon className="size-4" />
+						<span className="ml-1 hidden sm:inline">Map</span>
+					</Button>
+					<Button
+						variant={view === "list" ? "default" : "outline"}
+						size="sm"
+						onClick={() => setView("list")}
+					>
+						<List className="size-4" />
+						<span className="ml-1 hidden sm:inline">List</span>
+					</Button>
 				</div>
 			</div>
 
-			{/* Listing grid */}
-			<ListingGrid listings={listings} loading={loading} />
+			{/* Content */}
+			<div className="flex flex-1 overflow-hidden">
+				{/* Filter sidebar */}
+				<aside className="hidden w-72 shrink-0 overflow-y-auto border-r p-4 lg:block">
+					<MapFilters filters={filters} onChange={setFilters} />
+				</aside>
 
-			{/* Pagination */}
-			{pagination.count > pagination.pageSize && (
-				<div className="mt-8 flex items-center justify-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-						disabled={pagination.page <= 1}
-						onClick={() => setPage(pagination.page - 1)}
-					>
-						Previous
-					</Button>
-					<span className="text-sm text-muted-foreground">
-						Page {pagination.page} of {Math.ceil(pagination.count / pagination.pageSize)}
-					</span>
-					<Button
-						variant="outline"
-						size="sm"
-						disabled={pagination.page >= Math.ceil(pagination.count / pagination.pageSize)}
-						onClick={() => setPage(pagination.page + 1)}
-					>
-						Next
-					</Button>
+				{/* Main area */}
+				<div className="flex-1 overflow-hidden">
+					{view === "map" ? (
+						<div className="h-full">
+							<MarketMap
+								listings={listings}
+								selectedBusiness={selectedBusiness}
+								onSelectBusiness={setSelectedBusiness}
+								viewState={viewState}
+								onViewStateChange={setViewState}
+							/>
+						</div>
+					) : (
+						<div className="overflow-y-auto p-4">
+							<ListingGrid listings={listings} loading={loading} />
+
+							{pagination.count > pagination.pageSize && (
+								<div className="mt-6 flex items-center justify-center gap-2">
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={pagination.page <= 1}
+										onClick={() => setPage(pagination.page - 1)}
+									>
+										Previous
+									</Button>
+									<span className="text-sm text-muted-foreground">
+										Page {pagination.page} of {Math.ceil(pagination.count / pagination.pageSize)}
+									</span>
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={pagination.page >= Math.ceil(pagination.count / pagination.pageSize)}
+										onClick={() => setPage(pagination.page + 1)}
+									>
+										Next
+									</Button>
+								</div>
+							)}
+						</div>
+					)}
 				</div>
-			)}
+			</div>
 		</div>
 	);
 }
