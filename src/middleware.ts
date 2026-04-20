@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
-	const protectedRoutes = ["/seller"];
+	const protectedRoutes = ["/seller", "/marketplace/saved"];
 	const isProtected = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
 
 	if (!isProtected) {
