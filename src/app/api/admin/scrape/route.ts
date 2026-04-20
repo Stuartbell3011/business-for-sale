@@ -2,39 +2,45 @@ import { type NextRequest, NextResponse } from "next/server";
 import { openai } from "@/lib/ai/openai";
 import { createClient } from "@/lib/supabase/server";
 
-const EXTRACT_PROMPT = `You are a data extraction specialist. Given text content from a business-for-sale listing, extract structured data.
+const EXTRACT_PROMPT = `You are a data extraction specialist for business-for-sale listings. Extract structured data from the provided content.
 
-Return ONLY valid JSON in this exact format (no markdown, no explanation):
+The content may come from sites like BusinessesForSale.com, RightBiz, Daltons Business, or similar UK business marketplaces.
+
+Return ONLY valid JSON (no markdown code blocks, no explanation):
 {
-  "title": "short descriptive listing title",
+  "title": "short descriptive listing title, e.g. 'Popular Coffee Shop in Shoreditch'",
   "industry": "one of: Cafe, Restaurant, Gym, Salon, Retail, Bar, Services, Tech, Other",
-  "city": "city name (default to London if unclear)",
-  "country": "country (default to United Kingdom)",
+  "city": "city or area name, e.g. 'London' or 'Shoreditch, London'",
+  "country": "United Kingdom",
   "revenue": 0,
   "profit": 0,
   "employees": 0,
   "asking_price": 0,
-  "description": "brief 2-3 sentence summary of the business"
+  "description": "2-3 sentence summary of what the business does and why it's for sale"
 }
 
-Rules:
-- All financial values should be numbers (no currency symbols, no commas)
-- If a value is not found, use 0 for numbers or "Unknown" for strings
-- Convert any GBP/£ values to plain numbers
-- For industry, pick the closest match from the list
-- Extract as much data as possible from the content`;
+Extraction rules:
+- Look for: asking price, turnover/revenue, net profit, staff count, location, business type
+- Common labels: "Asking Price", "Turnover", "Net Profit", "Employees", "Location", "Price"
+- All financial values must be plain numbers (no £, €, commas, or text like "POA")
+- £150,000 → 150000, £1.2m → 1200000, £500k → 500000
+- If "Price on Application" or "POA", set asking_price to 0
+- If turnover/revenue not found, check for "annual sales" or "T/O"
+- For industry, pick the closest match — e.g. "takeaway" → Restaurant, "beauty" → Salon
+- Default city to "London" and country to "United Kingdom" if not specified
+- NEVER return "Unknown" for title — always create a descriptive title from the content`;
 
 function stripHtml(html: string): string {
 	return html
 		.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
 		.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-		.replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, "")
-		.replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, "")
-		.replace(/<header[^>]*>[\s\S]*?<\/header>/gi, "")
-		.replace(/<[^>]+>/g, " ")
-		.replace(/\s+/g, " ")
+		.replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, "")
+		.replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, "")
+		.replace(/<[^>]+>/g, "\n")
+		.replace(/[ \t]+/g, " ")
+		.replace(/\n\s*\n/g, "\n")
 		.trim()
-		.slice(0, 12000);
+		.slice(0, 16000);
 }
 
 async function fetchPage(url: string): Promise<string | null> {
