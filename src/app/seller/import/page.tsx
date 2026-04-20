@@ -197,7 +197,7 @@ export default function ImportPage() {
 			{mode === "paste" && (
 				<div className="mt-4 space-y-2">
 					<Label className="text-xs text-muted-foreground">
-						Copy the listing page content from your browser and paste it here
+						Open the listing in your browser, select all (Cmd+A), copy (Cmd+C), and paste here
 					</Label>
 					<Textarea
 						placeholder="Paste the listing page content here (text or HTML)..."
@@ -206,45 +206,36 @@ export default function ImportPage() {
 						rows={8}
 					/>
 					<Button
-						onClick={() => {
+						onClick={async () => {
 							if (!pasteInput.trim()) return;
-							setItems([...items, { url: `pasted-${Date.now()}`, status: "pending" }]);
-							// Immediately scrape the pasted content
-							(async () => {
-								const key = `pasted-${Date.now()}`;
-								setItems((prev) => [
-									...prev.filter((i) => i.url !== key),
-									{ url: key, status: "scraping" },
-								]);
-								try {
-									const res = await fetch("/api/admin/scrape", {
-										method: "POST",
-										headers: { "Content-Type": "application/json" },
-										body: JSON.stringify({ text: pasteInput }),
-									});
-									const json = await res.json();
-									if (!res.ok) {
-										setItems((prev) =>
-											prev.map((i) =>
-												i.url === key ? { ...i, status: "error", error: json.error } : i,
-											),
-										);
-									} else {
-										setItems((prev) =>
-											prev.map((i) =>
-												i.url === key ? { ...i, status: "extracted", data: json.data } : i,
-											),
-										);
-									}
-								} catch {
+							const key = `pasted-${Date.now()}`;
+							setItems((prev) => [...prev, { url: key, status: "scraping" }]);
+							try {
+								const res = await fetch("/api/admin/scrape", {
+									method: "POST",
+									headers: { "Content-Type": "application/json" },
+									body: JSON.stringify({ text: pasteInput }),
+								});
+								const json = await res.json();
+								if (!res.ok) {
 									setItems((prev) =>
 										prev.map((i) =>
-											i.url === key ? { ...i, status: "error", error: "Failed" } : i,
+											i.url === key ? { ...i, status: "error", error: json.error } : i,
+										),
+									);
+								} else {
+									setItems((prev) =>
+										prev.map((i) =>
+											i.url === key ? { ...i, status: "extracted", data: json.data } : i,
 										),
 									);
 								}
-								setPasteInput("");
-							})();
+							} catch {
+								setItems((prev) =>
+									prev.map((i) => (i.url === key ? { ...i, status: "error", error: "Failed" } : i)),
+								);
+							}
+							setPasteInput("");
 						}}
 						disabled={!pasteInput.trim()}
 					>
@@ -368,13 +359,29 @@ export default function ImportPage() {
 			)}
 
 			{/* Tip */}
-			<div className="mt-8 rounded-lg border bg-muted/50 p-4">
-				<p className="text-xs font-medium">Tip: If a URL returns a 403 error</p>
-				<p className="mt-1 text-xs text-muted-foreground">
-					Some sites block automated requests. Switch to &quot;Paste Content&quot; mode — open the
-					listing in your browser, select all (Cmd+A), copy (Cmd+C), and paste it here. The AI will
-					extract the data from the raw text.
-				</p>
+			<div className="mt-8 space-y-3">
+				<div className="rounded-lg border bg-muted/50 p-4">
+					<p className="text-xs font-medium">
+						How to import from RightBiz, BusinessesForSale, etc.
+					</p>
+					<ol className="mt-2 space-y-1 text-xs text-muted-foreground list-decimal pl-4">
+						<li>Open the listing page in your browser</li>
+						<li>
+							Select all content: <kbd className="rounded border bg-background px-1">Cmd+A</kbd>
+						</li>
+						<li>
+							Copy: <kbd className="rounded border bg-background px-1">Cmd+C</kbd>
+						</li>
+						<li>Switch to &quot;Paste Content&quot; tab above</li>
+						<li>
+							Paste: <kbd className="rounded border bg-background px-1">Cmd+V</kbd> and click
+							Extract Data
+						</li>
+					</ol>
+					<p className="mt-2 text-xs text-muted-foreground">
+						Most listing sites block automated scraping. The paste method works with any site.
+					</p>
+				</div>
 			</div>
 		</div>
 	);
