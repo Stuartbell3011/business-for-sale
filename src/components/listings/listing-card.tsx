@@ -1,5 +1,6 @@
 import { BadgeCheck, MapPin } from "lucide-react";
 import Link from "next/link";
+import { InsightBadges } from "@/components/listings/insight-badges";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Business } from "@/types";
 
@@ -48,6 +49,11 @@ export function ListingCard({ business }: Props) {
 							<p className="font-semibold">{margin}%</p>
 						</div>
 					</div>
+					{business.location_metrics?.[0] && (
+						<div className="mt-3">
+							<InsightBadges metrics={business.location_metrics[0]} maxBadges={2} />
+						</div>
+					)}
 				</CardContent>
 			</Card>
 		</Link>

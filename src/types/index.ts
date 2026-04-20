@@ -16,6 +16,7 @@ export type Business = {
 	verified: boolean;
 	created_at: string;
 	updated_at: string;
+	location_metrics?: LocationMetrics[];
 };
 
 export type LocationMetrics = {
