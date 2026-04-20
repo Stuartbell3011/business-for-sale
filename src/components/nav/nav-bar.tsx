@@ -39,6 +39,12 @@ export function NavBar() {
 									My Listings
 								</Link>
 								<Link
+									href="/seller/import"
+									className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+								>
+									Import
+								</Link>
+								<Link
 									href="/marketplace/saved"
 									className="text-sm text-muted-foreground transition-colors hover:text-foreground"
 								>
