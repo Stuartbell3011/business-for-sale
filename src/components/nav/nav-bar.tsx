@@ -21,7 +21,7 @@ export function NavBar() {
 			<div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
 				<div className="flex items-center gap-6">
 					<Link href="/" className="text-lg font-bold">
-						BizAcquire
+						Next Owner
 					</Link>
 					<nav className="hidden items-center gap-4 sm:flex">
 						<Link

@@ -25,7 +25,7 @@ export function SearchByArea() {
 					</h2>
 					<p className="mt-4 text-lg text-muted-foreground">
 						A cafe in Shoreditch is completely different from one in Chelsea. London is hyper-local,
-						which is why our platform is built around the map. Explore businesses visually, compare
+						which is why Next Owner is built around the map. Explore businesses visually, compare
 						locations instantly, and discover the right opportunity in the right area.
 					</p>
 				</div>

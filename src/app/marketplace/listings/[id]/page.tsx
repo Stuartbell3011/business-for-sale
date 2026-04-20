@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const { data } = await supabase.from("businesses").select("title, city").eq("id", id).single();
 
 	if (!data) return { title: "Listing Not Found" };
-	return { title: `${data.title} — ${data.city} | BizAcquire` };
+	return { title: `${data.title} — ${data.city} | Next Owner` };
 }
 
 export default async function ListingDetailPage({ params }: Props) {

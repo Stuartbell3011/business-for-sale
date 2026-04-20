@@ -20,13 +20,13 @@ export default function Home() {
 			<FeaturesGrid />
 			<CtaBanner
 				headline="Ready to Explore Businesses for Sale in London?"
-				description="Browse the map, discover opportunities, and be part of the first city launch."
+				description="Browse the map, discover opportunities, and be part of the first Next Owner city launch."
 				ctaLabel="Browse the Map"
 				ctaHref="/marketplace"
 			/>
 			<CtaBanner
 				headline="Selling a Business in London?"
-				description="List your business and reach serious buyers searching by area."
+				description="List your business on Next Owner and reach serious buyers searching by area."
 				ctaLabel="Create a Listing"
 				ctaHref="/seller/onboard"
 				variant="muted"

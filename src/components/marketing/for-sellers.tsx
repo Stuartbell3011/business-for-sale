@@ -6,8 +6,8 @@ const benefits = [
 	"Guided listing creation — no guesswork",
 	"AI-assisted listing copy that sells",
 	"Interactive map placement for local visibility",
-	"Reach serious buyers searching in your area",
-	"Direct enquiries — no middlemen",
+	"More visibility with local buyers",
+	"Direct enquiries from serious buyers",
 ];
 
 export function ForSellers() {
@@ -20,9 +20,9 @@ export function ForSellers() {
 							Sell Your Business Faster
 						</h2>
 						<p className="mt-4 text-lg text-muted-foreground">
-							Create a listing in minutes and get discovered by serious buyers searching in London.
-							Highlight your location, business type, price, and growth potential with a clean,
-							modern listing page.
+							Create a listing in minutes and get discovered by serious buyers searching across
+							London on Next Owner. Highlight your location, business type, price, and growth
+							potential with a clean, modern listing page.
 						</p>
 						<div className="mt-8">
 							<Button asChild size="lg">
