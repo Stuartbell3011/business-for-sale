@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { openai } from "@/lib/ai/openai";
 import { createClient } from "@/lib/supabase/server";
 
-const EXTRACT_PROMPT = `You are a data extraction specialist. Given the HTML content of a business-for-sale listing page, extract structured data.
+const EXTRACT_PROMPT = `You are a data extraction specialist. Given text content from a business-for-sale listing, extract structured data.
 
 Return ONLY valid JSON in this exact format (no markdown, no explanation):
 {
@@ -22,10 +22,9 @@ Rules:
 - If a value is not found, use 0 for numbers or "Unknown" for strings
 - Convert any GBP/£ values to plain numbers
 - For industry, pick the closest match from the list
-- Extract as much data as possible from the page content`;
+- Extract as much data as possible from the content`;
 
 function stripHtml(html: string): string {
-	// Remove scripts, styles, and tags — keep text content
 	return html
 		.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
 		.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
@@ -35,7 +34,38 @@ function stripHtml(html: string): string {
 		.replace(/<[^>]+>/g, " ")
 		.replace(/\s+/g, " ")
 		.trim()
-		.slice(0, 12000); // Cap to fit in context window
+		.slice(0, 12000);
+}
+
+async function fetchPage(url: string): Promise<string | null> {
+	const headers = {
+		"User-Agent":
+			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+		Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+		"Accept-Language": "en-GB,en;q=0.9",
+		"Accept-Encoding": "gzip, deflate, br",
+		"Cache-Control": "no-cache",
+		Referer: "https://www.google.com/",
+	};
+
+	// Try direct fetch
+	try {
+		const res = await fetch(url, { headers, redirect: "follow" });
+		if (res.ok) return await res.text();
+	} catch {
+		// Fall through to cache
+	}
+
+	// Try Google webcache
+	try {
+		const cacheUrl = `https://webcache.googleusercontent.com/search?q=cache:${encodeURIComponent(url)}`;
+		const res = await fetch(cacheUrl, { headers, redirect: "follow" });
+		if (res.ok) return await res.text();
+	} catch {
+		// Fall through
+	}
+
+	return null;
 }
 
 export async function POST(request: NextRequest) {
@@ -48,36 +78,35 @@ export async function POST(request: NextRequest) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
-	const { url } = await request.json();
+	const body = await request.json();
+	const { url, text } = body as { url?: string; text?: string };
 
-	if (!url || typeof url !== "string") {
-		return NextResponse.json({ error: "URL is required" }, { status: 400 });
+	if (!url && !text) {
+		return NextResponse.json({ error: "URL or text content is required" }, { status: 400 });
 	}
 
-	// Fetch the page
-	let html: string;
-	try {
-		const res = await fetch(url, {
-			headers: {
-				"User-Agent":
-					"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-				Accept: "text/html",
-			},
-		});
+	let textContent: string;
 
-		if (!res.ok) {
-			return NextResponse.json({ error: `Failed to fetch URL: ${res.status}` }, { status: 400 });
+	if (text) {
+		// Direct text/HTML pasted by user
+		textContent = text.includes("<") ? stripHtml(text) : text.trim();
+		textContent = textContent.slice(0, 12000);
+	} else {
+		// Fetch from URL
+		const html = await fetchPage(url as string);
+		if (!html) {
+			return NextResponse.json(
+				{
+					error: "Site blocked the request. Try pasting the page content directly instead.",
+				},
+				{ status: 403 },
+			);
 		}
-
-		html = await res.text();
-	} catch {
-		return NextResponse.json({ error: "Failed to fetch URL" }, { status: 400 });
+		textContent = stripHtml(html);
 	}
-
-	const textContent = stripHtml(html);
 
 	if (textContent.length < 50) {
-		return NextResponse.json({ error: "Page content too short to extract data" }, { status: 400 });
+		return NextResponse.json({ error: "Content too short to extract data" }, { status: 400 });
 	}
 
 	// Extract with GPT-4
@@ -88,7 +117,7 @@ export async function POST(request: NextRequest) {
 				{ role: "system", content: EXTRACT_PROMPT },
 				{
 					role: "user",
-					content: `Extract business listing data from this page content:\n\n${textContent}`,
+					content: `Extract business listing data from this content:\n\n${textContent}`,
 				},
 			],
 			temperature: 0.1,
@@ -98,7 +127,7 @@ export async function POST(request: NextRequest) {
 		const jsonMatch = raw.match(/\{[\s\S]*\}/);
 
 		if (!jsonMatch) {
-			return NextResponse.json({ error: "Failed to extract data from page" }, { status: 422 });
+			return NextResponse.json({ error: "Failed to extract data from content" }, { status: 422 });
 		}
 
 		const extracted = JSON.parse(jsonMatch[0]);
@@ -115,7 +144,7 @@ export async function POST(request: NextRequest) {
 				asking_price: Number(extracted.asking_price) || 0,
 				description: extracted.description ?? "",
 			},
-			source_url: url,
+			source_url: url ?? null,
 		});
 	} catch {
 		return NextResponse.json({ error: "AI extraction failed" }, { status: 500 });

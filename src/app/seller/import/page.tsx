@@ -1,12 +1,13 @@
 "use client";
 
-import { Check, ExternalLink, Loader2, Plus, Trash2, X } from "lucide-react";
+import { Check, ClipboardPaste, ExternalLink, Link2, Loader2, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 type ExtractedListing = {
 	title: string;
@@ -49,7 +50,9 @@ function guessCoords(city: string) {
 }
 
 export default function ImportPage() {
+	const [mode, setMode] = useState<"url" | "paste">("url");
 	const [urlInput, setUrlInput] = useState("");
+	const [pasteInput, setPasteInput] = useState("");
 	const [items, setItems] = useState<ScrapedItem[]>([]);
 	const [scraping, setScraping] = useState(false);
 
@@ -151,22 +154,104 @@ export default function ImportPage() {
 		<div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
 			<h1 className="text-2xl font-bold">Import Listings</h1>
 			<p className="mt-1 text-sm text-muted-foreground">
-				Paste URLs from business-for-sale sites. We&apos;ll extract the data automatically using AI.
+				Import listings by URL or paste page content directly. AI extracts the data automatically.
 			</p>
 
-			{/* URL input */}
-			<div className="mt-6 flex gap-2">
-				<Input
-					placeholder="https://businessesforsale.com/listing/..."
-					value={urlInput}
-					onChange={(e) => setUrlInput(e.target.value)}
-					onKeyDown={(e) => e.key === "Enter" && addUrl()}
-				/>
-				<Button onClick={addUrl} disabled={!urlInput.trim()}>
-					<Plus className="size-4" />
-					Add
+			{/* Mode toggle */}
+			<div className="mt-6 flex gap-1">
+				<Button
+					variant={mode === "url" ? "default" : "outline"}
+					size="sm"
+					onClick={() => setMode("url")}
+				>
+					<Link2 className="size-4" />
+					By URL
+				</Button>
+				<Button
+					variant={mode === "paste" ? "default" : "outline"}
+					size="sm"
+					onClick={() => setMode("paste")}
+				>
+					<ClipboardPaste className="size-4" />
+					Paste Content
 				</Button>
 			</div>
+
+			{/* URL input */}
+			{mode === "url" && (
+				<div className="mt-4 flex gap-2">
+					<Input
+						placeholder="https://businessesforsale.com/listing/..."
+						value={urlInput}
+						onChange={(e) => setUrlInput(e.target.value)}
+						onKeyDown={(e) => e.key === "Enter" && addUrl()}
+					/>
+					<Button onClick={addUrl} disabled={!urlInput.trim()}>
+						<Plus className="size-4" />
+						Add
+					</Button>
+				</div>
+			)}
+
+			{/* Paste input */}
+			{mode === "paste" && (
+				<div className="mt-4 space-y-2">
+					<Label className="text-xs text-muted-foreground">
+						Copy the listing page content from your browser and paste it here
+					</Label>
+					<Textarea
+						placeholder="Paste the listing page content here (text or HTML)..."
+						value={pasteInput}
+						onChange={(e) => setPasteInput(e.target.value)}
+						rows={8}
+					/>
+					<Button
+						onClick={() => {
+							if (!pasteInput.trim()) return;
+							setItems([...items, { url: `pasted-${Date.now()}`, status: "pending" }]);
+							// Immediately scrape the pasted content
+							(async () => {
+								const key = `pasted-${Date.now()}`;
+								setItems((prev) => [
+									...prev.filter((i) => i.url !== key),
+									{ url: key, status: "scraping" },
+								]);
+								try {
+									const res = await fetch("/api/admin/scrape", {
+										method: "POST",
+										headers: { "Content-Type": "application/json" },
+										body: JSON.stringify({ text: pasteInput }),
+									});
+									const json = await res.json();
+									if (!res.ok) {
+										setItems((prev) =>
+											prev.map((i) =>
+												i.url === key ? { ...i, status: "error", error: json.error } : i,
+											),
+										);
+									} else {
+										setItems((prev) =>
+											prev.map((i) =>
+												i.url === key ? { ...i, status: "extracted", data: json.data } : i,
+											),
+										);
+									}
+								} catch {
+									setItems((prev) =>
+										prev.map((i) =>
+											i.url === key ? { ...i, status: "error", error: "Failed" } : i,
+										),
+									);
+								}
+								setPasteInput("");
+							})();
+						}}
+						disabled={!pasteInput.trim()}
+					>
+						Extract Data
+					</Button>
+				</div>
+			)}
 
 			{/* URL list */}
 			{items.length > 0 && (
@@ -282,12 +367,13 @@ export default function ImportPage() {
 				</div>
 			)}
 
-			{/* Supported sites hint */}
-			<div className="mt-8">
-				<Label className="text-xs text-muted-foreground">Works best with</Label>
+			{/* Tip */}
+			<div className="mt-8 rounded-lg border bg-muted/50 p-4">
+				<p className="text-xs font-medium">Tip: If a URL returns a 403 error</p>
 				<p className="mt-1 text-xs text-muted-foreground">
-					BusinessesForSale.com, Daltons Business, RightBiz, UK Business Forums, and most listing
-					pages with visible business details.
+					Some sites block automated requests. Switch to &quot;Paste Content&quot; mode — open the
+					listing in your browser, select all (Cmd+A), copy (Cmd+C), and paste it here. The AI will
+					extract the data from the raw text.
 				</p>
 			</div>
 		</div>
