@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { openai } from "@/lib/ai/openai";
-import { createClient } from "@/lib/supabase/server";
 
 const EXTRACT_PROMPT = `You are a data extraction specialist for business-for-sale listings. Extract structured data from the provided content.
 
@@ -74,21 +73,26 @@ async function fetchPage(url: string): Promise<string | null> {
 	return null;
 }
 
+const corsHeaders = {
+	"Access-Control-Allow-Origin": "*",
+	"Access-Control-Allow-Methods": "POST, OPTIONS",
+	"Access-Control-Allow-Headers": "Content-Type",
+};
+
+function jsonResponse(data: unknown, status = 200) {
+	return NextResponse.json(data, { status, headers: corsHeaders });
+}
+
+export async function OPTIONS() {
+	return new Response(null, { status: 204, headers: corsHeaders });
+}
+
 export async function POST(request: NextRequest) {
-	const supabase = await createClient();
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
-
-	if (!user) {
-		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-	}
-
 	const body = await request.json();
 	const { url, text } = body as { url?: string; text?: string };
 
 	if (!url && !text) {
-		return NextResponse.json({ error: "URL or text content is required" }, { status: 400 });
+		return jsonResponse({ error: "URL or text content is required" }, 400);
 	}
 
 	let textContent: string;
@@ -101,18 +105,16 @@ export async function POST(request: NextRequest) {
 		// Fetch from URL
 		const html = await fetchPage(url as string);
 		if (!html) {
-			return NextResponse.json(
-				{
-					error: "Site blocked the request. Try pasting the page content directly instead.",
-				},
-				{ status: 403 },
+			return jsonResponse(
+				{ error: "Site blocked the request. Try pasting the page content directly instead." },
+				403,
 			);
 		}
 		textContent = stripHtml(html);
 	}
 
 	if (textContent.length < 50) {
-		return NextResponse.json({ error: "Content too short to extract data" }, { status: 400 });
+		return jsonResponse({ error: "Content too short to extract data" }, 400);
 	}
 
 	// Extract with GPT-4
@@ -133,12 +135,12 @@ export async function POST(request: NextRequest) {
 		const jsonMatch = raw.match(/\{[\s\S]*\}/);
 
 		if (!jsonMatch) {
-			return NextResponse.json({ error: "Failed to extract data from content" }, { status: 422 });
+			return jsonResponse({ error: "Failed to extract data from content" }, 422);
 		}
 
 		const extracted = JSON.parse(jsonMatch[0]);
 
-		return NextResponse.json({
+		return jsonResponse({
 			data: {
 				title: extracted.title ?? "Untitled Listing",
 				industry: extracted.industry ?? "Other",
@@ -153,6 +155,6 @@ export async function POST(request: NextRequest) {
 			source_url: url ?? null,
 		});
 	} catch {
-		return NextResponse.json({ error: "AI extraction failed" }, { status: 500 });
+		return jsonResponse({ error: "AI extraction failed" }, 500);
 	}
 }
