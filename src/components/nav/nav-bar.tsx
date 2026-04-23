@@ -39,10 +39,10 @@ export function NavBar() {
 									My Listings
 								</Link>
 								<Link
-									href="/seller/import"
+									href="/admin/scrape"
 									className="text-sm text-muted-foreground transition-colors hover:text-foreground"
 								>
-									Import
+									Admin
 								</Link>
 								<Link
 									href="/marketplace/saved"
