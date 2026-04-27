@@ -198,6 +198,16 @@ export default function AdminListingsPage() {
 									<span>{listing.industry}</span>
 									<span>£{listing.asking_price.toLocaleString()}</span>
 									<span>Rev: £{listing.revenue.toLocaleString()}</span>
+									{listing.source_url && (
+										<a
+											href={listing.source_url}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="inline-flex items-center gap-0.5 text-primary hover:underline"
+										>
+											Source <ExternalLink className="size-3" />
+										</a>
+									)}
 								</div>
 							</div>
 

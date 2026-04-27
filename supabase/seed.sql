@@ -21,6 +21,7 @@ create table if not exists businesses (
   asking_price numeric not null default 0,
   verified boolean not null default false,
   owner_id uuid references auth.users(id) on delete set null,
+  source_url text,
   deleted_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

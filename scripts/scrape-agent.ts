@@ -212,6 +212,7 @@ async function saveListing(data: ExtractedListing, sourceUrl?: string): Promise<
 		longitude: coords.lng,
 		location_precision: "approximate",
 		verified: false,
+		source_url: sourceUrl ?? null,
 	});
 
 	if (error) {

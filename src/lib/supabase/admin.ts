@@ -11,9 +11,9 @@ export function getAdminSupabase(): SupabaseClient {
 	return _client;
 }
 
-// Backwards compat
+// Backwards compat — lazy singleton
 export const adminSupabase = new Proxy({} as SupabaseClient, {
 	get(_, prop) {
-		return (getAdminSupabase() as Record<string, unknown>)[prop as string];
+		return (getAdminSupabase() as unknown as Record<string, unknown>)[prop as string];
 	},
 });
