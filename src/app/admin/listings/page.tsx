@@ -1,6 +1,18 @@
 "use client";
 
-import { BadgeCheck, Check, Clock, Search, Trash2, X } from "lucide-react";
+import {
+	BadgeCheck,
+	Building2,
+	Check,
+	Clock,
+	ExternalLink,
+	Loader2,
+	MapPin,
+	Search,
+	Star,
+	Trash2,
+	X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,10 +20,67 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import type { Business } from "@/types";
 
+type EnrichmentReport = {
+	business_id: string;
+	google: {
+		maps_url: string | null;
+		rating: number | null;
+		review_count: number | null;
+		address: string | null;
+		phone: string | null;
+	};
+	companies_house: {
+		found: boolean;
+		company_number: string | null;
+		company_name: string | null;
+		status: string | null;
+		incorporated: string | null;
+		address: string | null;
+		sic_codes: string[];
+		officers: { name: string; role: string; appointed_on: string }[];
+	};
+	location: {
+		postcode: string | null;
+		ward: string | null;
+		district: string | null;
+		constituency: string | null;
+	};
+	competition: {
+		same_industry_nearby: number;
+		total_nearby: number;
+	};
+};
+
 export default function AdminListingsPage() {
 	const [listings, setListings] = useState<Business[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState("");
+	const [enriching, setEnriching] = useState<string | null>(null);
+	const [reports, setReports] = useState<Record<string, EnrichmentReport>>({});
+	const [expandedId, setExpandedId] = useState<string | null>(null);
+
+	async function enrichListing(id: string) {
+		setEnriching(id);
+		setExpandedId(id);
+		try {
+			const res = await fetch("/api/admin/enrich", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ business_id: id }),
+			});
+			const json = await res.json();
+			if (res.ok) {
+				setReports((prev) => ({ ...prev, [id]: json.data }));
+				toast.success("Research complete");
+			} else {
+				toast.error(json.error ?? "Enrichment failed");
+			}
+		} catch {
+			toast.error("Failed to enrich");
+		} finally {
+			setEnriching(null);
+		}
+	}
 
 	useEffect(() => {
 		fetch("/api/admin/listings")
@@ -129,6 +198,23 @@ export default function AdminListingsPage() {
 							</div>
 
 							<div className="flex gap-1">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() =>
+										reports[listing.id]
+											? setExpandedId(expandedId === listing.id ? null : listing.id)
+											: enrichListing(listing.id)
+									}
+									disabled={enriching === listing.id}
+								>
+									{enriching === listing.id ? (
+										<Loader2 className="size-4 animate-spin" />
+									) : (
+										<Search className="size-4" />
+									)}
+									Research
+								</Button>
 								{listing.verified ? (
 									<Button
 										variant="ghost"
@@ -158,6 +244,101 @@ export default function AdminListingsPage() {
 								</Button>
 							</div>
 						</CardContent>
+
+						{/* Enrichment report */}
+						{expandedId === listing.id && reports[listing.id] && (
+							<div className="border-t bg-muted/30 px-6 py-4 text-xs">
+								{(() => {
+									const r = reports[listing.id];
+									return (
+										<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+											{/* Google */}
+											<div className="space-y-1">
+												<p className="font-semibold flex items-center gap-1">
+													<Star className="size-3" /> Google
+												</p>
+												{r.google.rating && (
+													<p>
+														Rating: {r.google.rating} ({r.google.review_count} reviews)
+													</p>
+												)}
+												{r.google.address && <p>Address: {r.google.address}</p>}
+												{r.google.phone && <p>Phone: {r.google.phone}</p>}
+												{r.google.maps_url && (
+													<a
+														href={r.google.maps_url}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="inline-flex items-center gap-1 text-primary hover:underline"
+													>
+														Google Maps <ExternalLink className="size-3" />
+													</a>
+												)}
+												{!r.google.rating && !r.google.address && (
+													<p className="text-muted-foreground">No data found</p>
+												)}
+											</div>
+
+											{/* Companies House */}
+											<div className="space-y-1">
+												<p className="font-semibold flex items-center gap-1">
+													<Building2 className="size-3" /> Companies House
+												</p>
+												{r.companies_house.found ? (
+													<>
+														<p>{r.companies_house.company_name}</p>
+														<p>Status: {r.companies_house.status}</p>
+														<p>Since: {r.companies_house.incorporated}</p>
+														{r.companies_house.address && <p>{r.companies_house.address}</p>}
+														{r.companies_house.officers.length > 0 && (
+															<p>
+																Directors:{" "}
+																{r.companies_house.officers.map((o) => o.name).join(", ")}
+															</p>
+														)}
+														{r.companies_house.company_number && (
+															<a
+																href={`https://find-and-update.company-information.service.gov.uk/company/${r.companies_house.company_number}`}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="inline-flex items-center gap-1 text-primary hover:underline"
+															>
+																View filing <ExternalLink className="size-3" />
+															</a>
+														)}
+													</>
+												) : (
+													<p className="text-muted-foreground">
+														No match found (may be sole trader)
+													</p>
+												)}
+											</div>
+
+											{/* Location */}
+											<div className="space-y-1">
+												<p className="font-semibold flex items-center gap-1">
+													<MapPin className="size-3" /> Location
+												</p>
+												{r.location.postcode && <p>Postcode: {r.location.postcode}</p>}
+												{r.location.ward && <p>Ward: {r.location.ward}</p>}
+												{r.location.district && <p>District: {r.location.district}</p>}
+												{r.location.constituency && <p>Constituency: {r.location.constituency}</p>}
+												{!r.location.postcode && (
+													<p className="text-muted-foreground">No postcode data</p>
+												)}
+											</div>
+
+											{/* Competition */}
+											<div className="space-y-1">
+												<p className="font-semibold">Competition (2km)</p>
+												<p>Same industry: {r.competition.same_industry_nearby}</p>
+												<p>Total businesses: {r.competition.total_nearby}</p>
+											</div>
+										</div>
+									);
+								})()}
+							</div>
+						)}
 					</Card>
 				))}
 			</div>
