@@ -1,6 +1,7 @@
 /**
- * Postcodes.io — free, no API key required
+ * Postcodes.io + Nominatim (OpenStreetMap) — both free, no API key required
  * https://postcodes.io/
+ * https://nominatim.org/
  */
 
 export type PostcodeData = {
@@ -44,7 +45,9 @@ export async function lookupPostcode(postcode: string): Promise<PostcodeData | n
 
 export async function reverseGeocode(lat: number, lng: number): Promise<PostcodeData | null> {
 	try {
-		const res = await fetch(`https://api.postcodes.io/postcodes?lon=${lng}&lat=${lat}&limit=1`);
+		const res = await fetch(
+			`https://api.postcodes.io/postcodes?lon=${lng}&lat=${lat}&radius=500&limit=1`,
+		);
 
 		if (!res.ok) return null;
 
@@ -95,4 +98,52 @@ export async function getNearbyPostcodes(
 	} catch {
 		return [];
 	}
+}
+
+/**
+ * Geocode a place name to lat/lng using Nominatim (OpenStreetMap).
+ * Free, no API key. Rate limit: 1 req/sec.
+ */
+export async function geocodePlaceName(
+	query: string,
+): Promise<{ lat: number; lng: number; display_name: string } | null> {
+	try {
+		const res = await fetch(
+			`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=gb`,
+			{
+				headers: {
+					"User-Agent": "NextOwner/1.0 (business listing platform)",
+				},
+			},
+		);
+
+		if (!res.ok) return null;
+
+		const data = await res.json();
+		if (!data[0]) return null;
+
+		return {
+			lat: parseFloat(data[0].lat),
+			lng: parseFloat(data[0].lon),
+			display_name: data[0].display_name,
+		};
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * Extract a location hint from a business listing title.
+ * e.g. "Fully-fitted Café And Restaurant In Camberwell, South London" → "Camberwell, London"
+ */
+export function extractLocationFromTitle(title: string): string | null {
+	// Pattern: "... in [Location]" or "... In [Location]"
+	const inMatch = title.match(/\b[Ii]n\s+([A-Za-z][a-zA-Z\s,'-]+)/);
+	if (inMatch) return inMatch[1].trim();
+
+	// Pattern: "... [Location] - ..."
+	const dashMatch = title.match(/[-–]\s*([A-Z][a-zA-Z\s,'-]+)/);
+	if (dashMatch) return dashMatch[1].trim();
+
+	return null;
 }

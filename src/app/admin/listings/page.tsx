@@ -40,6 +40,10 @@ type EnrichmentReport = {
 		officers: { name: string; role: string; appointed_on: string }[];
 	};
 	location: {
+		geocoded_from: string | null;
+		geocoded_address: string | null;
+		latitude: number;
+		longitude: number;
 		postcode: string | null;
 		ward: string | null;
 		district: string | null;
@@ -319,13 +323,21 @@ export default function AdminListingsPage() {
 												<p className="font-semibold flex items-center gap-1">
 													<MapPin className="size-3" /> Location
 												</p>
+												{r.location.geocoded_from && (
+													<p className="text-green-600">Geocoded: {r.location.geocoded_from}</p>
+												)}
+												{r.location.geocoded_address && (
+													<p className="truncate" title={r.location.geocoded_address}>
+														{r.location.geocoded_address}
+													</p>
+												)}
 												{r.location.postcode && <p>Postcode: {r.location.postcode}</p>}
 												{r.location.ward && <p>Ward: {r.location.ward}</p>}
 												{r.location.district && <p>District: {r.location.district}</p>}
 												{r.location.constituency && <p>Constituency: {r.location.constituency}</p>}
-												{!r.location.postcode && (
-													<p className="text-muted-foreground">No postcode data</p>
-												)}
+												<p className="text-muted-foreground">
+													{r.location.latitude.toFixed(4)}, {r.location.longitude.toFixed(4)}
+												</p>
 											</div>
 
 											{/* Competition */}
