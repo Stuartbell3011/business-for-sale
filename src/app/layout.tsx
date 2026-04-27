@@ -9,9 +9,9 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-	title: "BizAcquire — Businesses for Sale in London",
+	title: "Next Owner — Businesses for Sale in London",
 	description:
-		"Discover small businesses for sale across London. Browse by area on an interactive map, connect with sellers, and acquire your next venture.",
+		"Discover small businesses for sale across London. Browse by area on an interactive map, connect with sellers, and find your next opportunity.",
 };
 
 export default function RootLayout({

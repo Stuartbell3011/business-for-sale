@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
-	const protectedRoutes = ["/seller"];
+	const protectedRoutes = ["/seller", "/marketplace/saved", "/admin"];
 	const isProtected = protectedRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
 
 	if (!isProtected) {
@@ -38,6 +38,15 @@ export async function middleware(request: NextRequest) {
 
 	if (!user) {
 		return NextResponse.redirect(new URL("/login", request.url));
+	}
+
+	// Admin routes restricted to specific emails
+	const adminEmails = (process.env.ADMIN_EMAILS ?? "stuartbell3011@gmail.com").split(",");
+	if (
+		request.nextUrl.pathname.startsWith("/admin") &&
+		!adminEmails.includes(user.email ?? "")
+	) {
+		return NextResponse.redirect(new URL("/marketplace", request.url));
 	}
 
 	return supabaseResponse;
