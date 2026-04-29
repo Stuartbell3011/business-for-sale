@@ -1,8 +1,14 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { searchCompany, getCompanyProfile, getOfficers } from "@/lib/enrichment/companies-house";
-import { findGoogleBusiness } from "@/lib/enrichment/google-search";
-import { extractLocationFromTitle, geocodePlaceName, reverseGeocode } from "@/lib/enrichment/postcodes";
 import { createClient } from "@supabase/supabase-js";
+import { type NextRequest, NextResponse } from "next/server";
+import { matchBusiness } from "@/lib/enrichment/business-matcher";
+import { getOfficers } from "@/lib/enrichment/companies-house";
+import { findGoogleBusiness } from "@/lib/enrichment/google-search";
+import {
+	extractLocationFromTitle,
+	geocodePlaceName,
+	lookupPostcode,
+	reverseGeocode,
+} from "@/lib/enrichment/postcodes";
 
 function getAdmin() {
 	return createClient(
@@ -51,28 +57,62 @@ export async function POST(request: NextRequest) {
 				address: null,
 				phone: null,
 			})),
-			searchCompany(business.title).catch(() => []),
+			// AI business matcher — searches Companies House with smart queries
+			matchBusiness({
+				title: business.title,
+				industry: business.industry,
+				city: business.city,
+				revenue: business.revenue,
+				profit: business.profit,
+				asking_price: business.asking_price,
+			}).catch(() => ({
+				confidence: "none" as const,
+				company_number: null,
+				company_name: null,
+				address: null,
+				postcode: null,
+				status: null,
+				incorporated: null,
+				sic_codes: [],
+				reasoning: "Matcher failed",
+			})),
 			reverseGeocode(lat, lng).catch(() => null),
 		]);
 
-		// Companies House detail
-		let companyProfile = null;
+		// If AI matched a company, get officers + use postcode for precise location
 		let officers: { name: string; role: string; appointed_on: string }[] = [];
-		const bestMatch = companies[0];
+		const matched = companies;
 
-		if (bestMatch) {
-			[companyProfile, officers] = await Promise.all([
-				getCompanyProfile(bestMatch.company_number).catch(() => null),
-				getOfficers(bestMatch.company_number).catch(() => []),
-			]);
+		if (matched.company_number) {
+			officers = await getOfficers(matched.company_number).catch(() => []);
 		}
 
-		// Update listing with better location
+		// If we got a postcode from Companies House, geocode it for precise lat/lng
+		if (matched.postcode) {
+			const postcodeLocation = await lookupPostcode(matched.postcode);
+			if (postcodeLocation) {
+				geocoded = {
+					lat: postcodeLocation.latitude,
+					lng: postcodeLocation.longitude,
+					display_name: `${matched.address} (from Companies House)`,
+				};
+			}
+		}
+
+		// Update listing with best available location
+		const finalLat = geocoded?.lat ?? lat;
+		const finalLng = geocoded?.lng ?? lng;
 		const updates: Record<string, unknown> = {};
-		if (geocoded) {
-			updates.latitude = geocoded.lat;
-			updates.longitude = geocoded.lng;
-			if (locationHint) updates.city = locationHint;
+
+		if (finalLat !== business.latitude || finalLng !== business.longitude) {
+			updates.latitude = finalLat;
+			updates.longitude = finalLng;
+		}
+		if (locationHint && !matched.postcode) {
+			updates.city = locationHint;
+		}
+		if (matched.address) {
+			updates.city = matched.address;
 		}
 		if (Object.keys(updates).length > 0) {
 			updates.updated_at = new Date().toISOString();
@@ -84,30 +124,25 @@ export async function POST(request: NextRequest) {
 				business_id,
 				google: googleInfo,
 				companies_house: {
-					found: !!bestMatch,
-					company_number: bestMatch?.company_number ?? null,
-					company_name: bestMatch?.title ?? null,
-					status: companyProfile?.company_status ?? bestMatch?.company_status ?? null,
-					incorporated: companyProfile?.date_of_creation ?? bestMatch?.date_of_creation ?? null,
-					address: companyProfile?.registered_office_address
-						? [
-								companyProfile.registered_office_address.address_line_1,
-								companyProfile.registered_office_address.address_line_2,
-								companyProfile.registered_office_address.locality,
-								companyProfile.registered_office_address.postal_code,
-							]
-								.filter(Boolean)
-								.join(", ")
-						: (bestMatch?.address_snippet ?? null),
-					sic_codes: companyProfile?.sic_codes ?? [],
+					found: matched.confidence !== "none",
+					confidence: matched.confidence,
+					company_number: matched.company_number,
+					company_name: matched.company_name,
+					status: matched.status,
+					incorporated: matched.incorporated,
+					address: matched.address,
+					sic_codes: matched.sic_codes,
 					officers,
+					reasoning: matched.reasoning,
 				},
 				location: {
-					geocoded_from: locationHint ?? null,
+					geocoded_from: matched.postcode
+						? `Companies House: ${matched.postcode}`
+						: (locationHint ?? null),
 					geocoded_address: geocoded?.display_name ?? null,
-					latitude: lat,
-					longitude: lng,
-					postcode: postcodeData?.postcode ?? null,
+					latitude: finalLat,
+					longitude: finalLng,
+					postcode: matched.postcode ?? postcodeData?.postcode ?? null,
 					ward: postcodeData?.admin_ward ?? null,
 					district: postcodeData?.admin_district ?? null,
 					constituency: postcodeData?.parliamentary_constituency ?? null,

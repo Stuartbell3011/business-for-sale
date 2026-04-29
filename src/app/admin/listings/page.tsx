@@ -31,6 +31,7 @@ type EnrichmentReport = {
 	};
 	companies_house: {
 		found: boolean;
+		confidence: string;
 		company_number: string | null;
 		company_name: string | null;
 		status: string | null;
@@ -38,6 +39,7 @@ type EnrichmentReport = {
 		address: string | null;
 		sic_codes: string[];
 		officers: { name: string; role: string; appointed_on: string }[];
+		reasoning: string;
 	};
 	location: {
 		geocoded_from: string | null;
@@ -300,10 +302,26 @@ export default function AdminListingsPage() {
 												</p>
 												{r.companies_house.found ? (
 													<>
-														<p>{r.companies_house.company_name}</p>
+														<p
+															className={
+																r.companies_house.confidence === "high"
+																	? "text-green-600"
+																	: r.companies_house.confidence === "medium"
+																		? "text-amber-600"
+																		: "text-muted-foreground"
+															}
+														>
+															Match: {r.companies_house.confidence}
+														</p>
+														<p className="font-medium">{r.companies_house.company_name}</p>
 														<p>Status: {r.companies_house.status}</p>
 														<p>Since: {r.companies_house.incorporated}</p>
 														{r.companies_house.address && <p>{r.companies_house.address}</p>}
+														{r.companies_house.reasoning && (
+															<p className="italic text-muted-foreground">
+																{r.companies_house.reasoning}
+															</p>
+														)}
 														{r.companies_house.officers.length > 0 && (
 															<p>
 																Directors:{" "}
