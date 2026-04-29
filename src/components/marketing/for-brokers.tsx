@@ -1,11 +1,11 @@
 import { Check } from "lucide-react";
 
 const benefits = [
-	"Manage multiple listings from one dashboard",
-	"Better listing presentation with structured data",
-	"Map-first discovery puts your listings on the map",
-	"Local search visibility across London areas",
-	"Higher quality leads from serious buyers",
+	"Manage multiple listings",
+	"Better listing presentation",
+	"Map-first discovery",
+	"Local search visibility",
+	"Better lead quality",
 ];
 
 export function ForBrokers() {
@@ -17,8 +17,8 @@ export function ForBrokers() {
 						<h2 className="text-3xl font-bold tracking-tight md:text-4xl">Built for Brokers</h2>
 						<p className="mt-4 text-lg text-muted-foreground">
 							Manage multiple listings, improve presentation, and reach more qualified buyers. Use
-							the platform to market businesses visually, generate more enquiries, and stand out
-							from outdated directories.
+							Next Owner to market businesses visually, generate more enquiries, and stand out from
+							outdated directories.
 						</p>
 					</div>
 

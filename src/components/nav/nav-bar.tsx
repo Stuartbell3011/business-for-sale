@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { Bookmark, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -21,15 +21,37 @@ export function NavBar() {
 			<div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
 				<div className="flex items-center gap-6">
 					<Link href="/" className="text-lg font-bold">
-						BizAcquire
+						Next Owner
 					</Link>
 					<nav className="hidden items-center gap-4 sm:flex">
 						<Link
 							href="/marketplace"
-							className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+							className="text-sm text-muted-foreground transition-colors hover:text-foreground"
 						>
 							Browse
 						</Link>
+						{user && (
+							<>
+								<Link
+									href="/seller/dashboard"
+									className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+								>
+									My Listings
+								</Link>
+								<Link
+									href="/admin/scrape"
+									className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+								>
+									Admin
+								</Link>
+								<Link
+									href="/marketplace/saved"
+									className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+								>
+									<Bookmark className="inline size-3.5" /> Saved
+								</Link>
+							</>
+						)}
 					</nav>
 				</div>
 

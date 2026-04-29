@@ -1,6 +1,19 @@
-import { createClient } from "@supabase/supabase-js";
+import { type SupabaseClient, createClient } from "@supabase/supabase-js";
 
-export const adminSupabase = createClient(
-	process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-	process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
-);
+let _client: SupabaseClient | null = null;
+
+export function getAdminSupabase(): SupabaseClient {
+	if (!_client) {
+		const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+		const key = process.env.SUPABASE_SERVICE_ROLE_KEY || (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "");
+		_client = createClient(url, key);
+	}
+	return _client;
+}
+
+// Backwards compat — lazy singleton
+export const adminSupabase = new Proxy({} as SupabaseClient, {
+	get(_, prop) {
+		return (getAdminSupabase() as unknown as Record<string, unknown>)[prop as string];
+	},
+});

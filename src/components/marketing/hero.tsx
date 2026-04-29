@@ -8,7 +8,7 @@ export function Hero() {
 			{/* Inline header */}
 			<header className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
 				<Link href="/" className="text-xl font-bold">
-					BizAcquire
+					Next Owner
 				</Link>
 				<nav className="flex items-center gap-4">
 					<Link
@@ -38,7 +38,7 @@ export function Hero() {
 						</h1>
 						<p className="mt-6 text-xl text-muted-foreground">
 							Browse cafes, restaurants, gyms, salons, retail stores, and more &mdash; all on an
-							interactive map. Launching first in London.
+							interactive map.
 						</p>
 						<div className="mt-8 flex flex-col gap-3 sm:flex-row">
 							<Button asChild size="lg">
@@ -49,8 +49,9 @@ export function Hero() {
 							</Button>
 						</div>
 						<p className="mt-4 text-sm text-muted-foreground">
-							Discover businesses by area, compare opportunities faster, and connect directly with
-							sellers.
+							Next Owner helps buyers discover businesses for sale across London through a faster,
+							map-first experience. Explore by area, compare opportunities visually, and connect
+							directly with sellers, brokers, and owners.
 						</p>
 					</div>
 

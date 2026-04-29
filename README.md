@@ -1,6 +1,6 @@
-# BizAcquire
+# Next Owner
 
-AI-powered platform to discover, evaluate, and acquire small businesses — with location intelligence.
+The fastest way to buy and sell businesses in London — with an interactive map, AI onboarding, and location intelligence.
 
 ## Tech Stack
 

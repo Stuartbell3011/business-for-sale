@@ -32,8 +32,9 @@ export function SocialProof() {
 						Launching in London
 					</h2>
 					<p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-						We are building the fastest way to buy and sell businesses in London. Join early access
-						and be one of the first to discover new opportunities.
+						Next Owner is building the fastest way to buy and sell businesses in London. Join early
+						access as a buyer, seller, or broker and be one of the first to discover new
+						opportunities.
 					</p>
 				</div>
 
