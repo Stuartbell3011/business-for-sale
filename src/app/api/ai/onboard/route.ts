@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { openai } from "@/lib/ai/openai";
 import { createClient } from "@/lib/supabase/server";
 
-const SYSTEM_PROMPT = `You are a business listing specialist for BizAcquire, a marketplace for buying and selling small businesses in London.
+const SYSTEM_PROMPT = `You are a business listing specialist for Next Owner, a marketplace for buying and selling small businesses in London.
 
 Your job is to have a friendly conversation with a seller to extract structured data about their business.
 

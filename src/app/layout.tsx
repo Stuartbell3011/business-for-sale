@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { config } from "@/config/vertical";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -9,9 +10,8 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-	title: "BizAcquire — Businesses for Sale in London",
-	description:
-		"Discover small businesses for sale across London. Browse by area on an interactive map, connect with sellers, and acquire your next venture.",
+	title: `${config.name} — ${config.headline}`,
+	description: config.supportingText,
 };
 
 export default function RootLayout({

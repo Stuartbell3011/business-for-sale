@@ -1,14 +1,7 @@
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-
-const benefits = [
-	"Guided listing creation — no guesswork",
-	"AI-assisted listing copy that sells",
-	"Interactive map placement for local visibility",
-	"Reach serious buyers searching in your area",
-	"Direct enquiries — no middlemen",
-];
+import { config } from "@/config/vertical";
 
 export function ForSellers() {
 	return (
@@ -17,13 +10,9 @@ export function ForSellers() {
 				<div className="grid items-center gap-12 lg:grid-cols-2">
 					<div>
 						<h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-							Sell Your Business Faster
+							{config.sellerHeadline}
 						</h2>
-						<p className="mt-4 text-lg text-muted-foreground">
-							Create a listing in minutes and get discovered by serious buyers searching in London.
-							Highlight your location, business type, price, and growth potential with a clean,
-							modern listing page.
-						</p>
+						<p className="mt-4 text-lg text-muted-foreground">{config.sellerCopy}</p>
 						<div className="mt-8">
 							<Button asChild size="lg">
 								<Link href="/seller/onboard">Create a Listing</Link>
@@ -32,7 +21,7 @@ export function ForSellers() {
 					</div>
 
 					<ul className="space-y-4">
-						{benefits.map((benefit) => (
+						{config.sellerBenefits.map((benefit) => (
 							<li key={benefit} className="flex items-start gap-3">
 								<Check className="mt-0.5 size-5 shrink-0 text-primary" />
 								<span>{benefit}</span>

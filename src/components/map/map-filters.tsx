@@ -4,9 +4,8 @@ import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { config } from "@/config/vertical";
 import type { ListingFilters } from "@/types";
-
-const industries = ["Cafe", "Restaurant", "Gym", "Salon", "Retail", "Bar", "Services", "Tech"];
 
 type Props = {
 	filters: ListingFilters;
@@ -44,7 +43,7 @@ export function MapFilters({ filters, onChange }: Props) {
 			<div className="space-y-1.5">
 				<Label className="text-xs">Industry</Label>
 				<div className="flex flex-wrap gap-1.5">
-					{industries.map((ind) => (
+					{config.industries.map((ind) => (
 						<Button
 							key={ind}
 							variant={filters.industry === ind ? "default" : "outline"}

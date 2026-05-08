@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const { data } = await supabase.from("businesses").select("title, city").eq("id", id).single();
 
 	if (!data) return { title: "Listing Not Found" };
-	return { title: `${data.title} — ${data.city} | BizAcquire` };
+	return { title: `${data.title} — ${data.city} | Next Owner` };
 }
 
 export default async function ListingDetailPage({ params }: Props) {
@@ -155,10 +155,18 @@ export default async function ListingDetailPage({ params }: Props) {
 			</div>
 
 			{/* CTA */}
-			<div className="mt-8">
+			<div className="mt-8 flex flex-wrap gap-3">
 				<Button size="lg" className="w-full sm:w-auto">
 					Request Access
 				</Button>
+				{business.source_url && (
+					<Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+						<a href={business.source_url} target="_blank" rel="noopener noreferrer">
+							View Original Listing
+							<ArrowLeft className="ml-1 size-4 rotate-[135deg]" />
+						</a>
+					</Button>
+				)}
 			</div>
 		</div>
 	);

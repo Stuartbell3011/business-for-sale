@@ -14,6 +14,7 @@ export type Business = {
 	employees: number;
 	asking_price: number;
 	verified: boolean;
+	source_url?: string | null;
 	created_at: string;
 	updated_at: string;
 	location_metrics?: LocationMetrics[];

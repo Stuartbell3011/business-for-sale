@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
+import { config } from "@/config/vertical";
 
 const platformLinks = [
 	{ label: "For Buyers", href: "#buyers" },
@@ -24,10 +25,8 @@ export function Footer() {
 			<div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
 				<div className="grid grid-cols-2 gap-8 md:grid-cols-4">
 					<div className="col-span-2 md:col-span-1">
-						<p className="text-lg font-bold">BizAcquire</p>
-						<p className="mt-2 text-sm text-muted-foreground">
-							The fastest way to buy and sell businesses in London.
-						</p>
+						<p className="text-lg font-bold">{config.name}</p>
+						<p className="mt-2 text-sm text-muted-foreground">{config.headline}</p>
 					</div>
 
 					<div>
@@ -82,7 +81,7 @@ export function Footer() {
 				<Separator className="my-8" />
 
 				<p className="text-center text-sm text-muted-foreground">
-					&copy; 2026 BizAcquire. All rights reserved.
+					&copy; 2026 {config.name}. All rights reserved.
 				</p>
 			</div>
 		</footer>

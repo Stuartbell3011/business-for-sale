@@ -1,19 +1,5 @@
 import Link from "next/link";
-
-const areas = [
-	"Soho",
-	"Shoreditch",
-	"Camden",
-	"Clapham",
-	"Canary Wharf",
-	"Notting Hill",
-	"Richmond",
-	"Chelsea",
-	"Islington",
-	"Hackney",
-	"Mayfair",
-	"Brixton",
-];
+import { config } from "@/config/vertical";
 
 export function SearchByArea() {
 	return (
@@ -23,15 +9,11 @@ export function SearchByArea() {
 					<h2 className="text-3xl font-bold tracking-tight md:text-4xl">
 						Search by Area, Not Just Keywords
 					</h2>
-					<p className="mt-4 text-lg text-muted-foreground">
-						A cafe in Shoreditch is completely different from one in Chelsea. London is hyper-local,
-						which is why our platform is built around the map. Explore businesses visually, compare
-						locations instantly, and discover the right opportunity in the right area.
-					</p>
+					<p className="mt-4 text-lg text-muted-foreground">{config.searchByAreaCopy}</p>
 				</div>
 
 				<div className="mt-10 flex flex-wrap justify-center gap-3">
-					{areas.map((area) => (
+					{config.areas.map((area) => (
 						<Link
 							key={area}
 							href={`/marketplace?area=${encodeURIComponent(area.toLowerCase())}`}
