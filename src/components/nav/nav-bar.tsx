@@ -4,6 +4,7 @@ import { Bookmark, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { config } from "@/config/vertical";
 import { useAuth } from "@/hooks/use-auth";
 
 export function NavBar() {
@@ -21,7 +22,7 @@ export function NavBar() {
 			<div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
 				<div className="flex items-center gap-6">
 					<Link href="/" className="text-lg font-bold">
-						Next Owner
+						{config.name}
 					</Link>
 					<nav className="hidden items-center gap-4 sm:flex">
 						<Link

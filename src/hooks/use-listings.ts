@@ -1,9 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { config } from "@/config/vertical";
 import type { Business, ListingFilters } from "@/types";
 
-export function useListings(initialFilters: ListingFilters = {}) {
+const defaultFilters: ListingFilters =
+	config.industries.length === 1 ? { industry: config.industries[0] } : {};
+
+export function useListings(initialFilters: ListingFilters = defaultFilters) {
 	const [listings, setListings] = useState<Business[]>([]);
 	const [filters, setFilters] = useState<ListingFilters>(initialFilters);
 	const [loading, setLoading] = useState(false);

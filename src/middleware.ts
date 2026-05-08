@@ -42,10 +42,7 @@ export async function middleware(request: NextRequest) {
 
 	// Admin routes restricted to specific emails
 	const adminEmails = (process.env.ADMIN_EMAILS ?? "stuartbell3011@gmail.com").split(",");
-	if (
-		request.nextUrl.pathname.startsWith("/admin") &&
-		!adminEmails.includes(user.email ?? "")
-	) {
+	if (request.nextUrl.pathname.startsWith("/admin") && !adminEmails.includes(user.email ?? "")) {
 		return NextResponse.redirect(new URL("/marketplace", request.url));
 	}
 

@@ -7,6 +7,7 @@ import { ForSellers } from "@/components/marketing/for-sellers";
 import { Hero } from "@/components/marketing/hero";
 import { SearchByArea } from "@/components/marketing/search-by-area";
 import { SocialProof } from "@/components/marketing/social-proof";
+import { config } from "@/config/vertical";
 
 export default function Home() {
 	return (
@@ -20,13 +21,13 @@ export default function Home() {
 			<FeaturesGrid />
 			<CtaBanner
 				headline="Ready to Explore Businesses for Sale in London?"
-				description="Browse the map, discover opportunities, and be part of the first Next Owner city launch."
+				description={config.ctaBuyerDescription}
 				ctaLabel="Browse the Map"
 				ctaHref="/marketplace"
 			/>
 			<CtaBanner
 				headline="Selling a Business in London?"
-				description="List your business on Next Owner and reach serious buyers searching by area."
+				description={config.ctaSellerDescription}
 				ctaLabel="Create a Listing"
 				ctaHref="/seller/onboard"
 				variant="muted"

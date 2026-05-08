@@ -1,6 +1,7 @@
 import { Building2, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { config } from "@/config/vertical";
 
 const trustPoints = [
 	{
@@ -32,9 +33,7 @@ export function SocialProof() {
 						Launching in London
 					</h2>
 					<p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-						Next Owner is building the fastest way to buy and sell businesses in London. Join early
-						access as a buyer, seller, or broker and be one of the first to discover new
-						opportunities.
+						{config.socialProofCopy}
 					</p>
 				</div>
 

@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { config } from "@/config/vertical";
 import { openai } from "@/lib/ai/openai";
 import { adminSupabase } from "@/lib/supabase/admin";
 
@@ -35,11 +36,7 @@ Rules:
 - Default city to "London", country to "United Kingdom"
 - Skip navigation, ads, and non-listing content`;
 
-const SEARCH_URLS = [
-	"https://uk.businessesforsale.com/uk/search/businesses-for-sale-in-london",
-	"https://uk.businessesforsale.com/uk/search/restaurants-for-sale-in-london",
-	"https://uk.businessesforsale.com/uk/search/cafes-for-sale-in-london",
-];
+const SEARCH_URLS = config.searchUrls;
 
 const LONDON_COORDS: Record<string, { lat: number; lng: number }> = {
 	soho: { lat: 51.5134, lng: -0.1365 },
